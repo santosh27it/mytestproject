@@ -1,1 +1,9 @@
 ﻿sqoop import -D oraoop.timestamp.string=false  -D hadoop.security.credential.provider.path=jceks://hdfs/CONSUMER/RETIREMENT_DL/RAW/IR_NAVISYS_CONNEXT_DB/JCEKS/sqoop.passwd.jceks --connect jdbc:oracle:thin:@"(description=(address=(protocol=tcp)(host=a2ec702c1-scan.us2.ocm.s7130945.oraclecloudatcustomer.com)(port=1521))(connect_data=(SERVICE_NAME=SLRHOQA3.us2.ocm.s7130945.oraclecloudatcustomer.com)))" --username NV17_QA_ADW_CRDL --password-alias nvss_qa.password.alias -m 1 --fields-terminated-by '\001' --null-string '' --null-non-string '' --query "`cat /LAND/CONSUMER/RETIREMENT_DL/IR_NAVISYS/SQL/T_SUN_LAST_PRCSDATE_TXN.SQL`" --delete-target-dir --target-dir '/CONSUMER/RETIREMENT_DL/RAW/IR_NAVISYS_CONNEXT_DB/STAGING/T_SUN_LAST_PRCSDATE_TXN' 
+
+Problem Faced in Talend accessing Hadoop ansd spark jobs:--
+
+1:- Context can't be loaded in bigdata batch jobs.Need to use normal job to pass the context into bigdata batch child jobs.
+2:- In Big data batch job, use of contextulized HDFS cluster wont work if hive component is being used in spark jobs.
+3:- In Cassandra,CSQL should be simple and Update will work as insert if no matching key is found.
+4:- In Sqoop, we used keystore files using command "hadoop credential" to have better control of accessability on cluster.
+5:- 
