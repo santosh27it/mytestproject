@@ -1,0 +1,131 @@
+package routines;
+
+import java.io.BufferedReader;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileReader;
+import java.io.PrintWriter;
+import java.io.FileOutputStream;
+import java.math.BigInteger;
+import java.nio.file.*;
+import java.util.Scanner;
+
+public class WCIncrementalCDC {
+
+public static void parseFiles(String masterFileName, String extractFileName, String insertFileName, String updateFileName, String copyFileName, int hashLength, String wcCDCDelimiter, String wcFieldSeparator) {
+	    
+		//String s2="ffffffffffffffffffffffffffffffff";
+		//340282366920938463463374607431768211455
+
+		BigInteger b1=null;
+		BigInteger b2=null;
+
+		try{
+		File masterFile = new File(masterFileName); 
+		BufferedReader masterBR = new BufferedReader(new FileReader(masterFile )); 
+		  
+		String masterLine; 
+		boolean extractReadFlag = true;
+
+		File extractFile = new File(extractFileName); 
+		BufferedReader EB = new BufferedReader(new FileReader(extractFile)); 
+		Scanner extractBR = new Scanner(EB).useDelimiter("\\~[\r\n]+"); 
+		  
+		String extractLine=null;
+		String masterKey="";
+		String masterVal="";
+		String extractKey="";
+		String extractVal="";
+
+		FileOutputStream insertFile = new FileOutputStream(insertFileName,false);
+		FileOutputStream updateFile = new FileOutputStream(updateFileName,false);
+		FileOutputStream copyFile = new FileOutputStream(copyFileName,false);
+
+		PrintWriter pwInsert = new PrintWriter(insertFile);
+		PrintWriter pwUpdate = new PrintWriter(updateFile);
+		PrintWriter pwCopy = new PrintWriter(copyFile);
+
+		masterLine = masterBR.readLine();
+		
+		if (extractBR.hasNext())
+			extractLine = extractBR.next();
+			
+			else extractReadFlag = false;
+		//extractLine = extractBR.nextLine();
+
+		//extractBR.hasNextLine()
+
+		while (masterLine != null || extractReadFlag) {
+
+		if (masterLine != null){
+			masterKey=masterLine.substring(0,hashLength);
+			masterVal=masterLine.substring(hashLength+1);
+		b1 = new BigInteger(masterKey, 16);
+		//System.out.println("b1--" +b1 + "---" + masterLine );
+		}
+		if (extractLine != null){
+		extractKey=extractLine.substring(0,hashLength);
+		extractVal=extractLine.substring(hashLength+1,2*hashLength+1);
+		b2 = new BigInteger(extractKey, 16);
+		//System.out.println("b2--" +b2 + "---" + extractLine);
+		}
+		//System.out.println("masterKey>>" + masterKey + "<<>>" + masterVal + "<<>>" + extractKey + "<<>>" +extractVal);
+		if (masterLine == null){
+		//System.out.println("point#1");
+		pwInsert.write(extractLine.substring(2*hashLength+2)+"\r\n");
+		if (extractBR.hasNext())
+		extractLine = extractBR.next();
+		else extractReadFlag = false;
+		//System.out.println("point#1a - " + extractLine + extractBR.hasNextLine());
+		}
+		else if (!extractReadFlag){
+		//System.out.println("point#2");
+		pwCopy.write(masterLine+"\n");
+		masterLine = masterBR.readLine();
+		//System.out.println("point#2a");
+		}
+		else if (((b1.compareTo(b2)) == 1) && extractReadFlag){
+		//System.out.println("point#3");
+		pwInsert.write(extractLine.substring(2*hashLength+2)+"\r\n");
+		if (extractBR.hasNext())
+		extractLine = extractBR.next();
+		else extractReadFlag = false;
+		//System.out.println("point#3a - " + extractLine + extractBR.hasNextLine());
+		}
+		else if ((b1.compareTo(b2)) == -1){
+		//System.out.println("point#4");
+		pwCopy.write(masterLine+"\n");
+		masterLine = masterBR.readLine();
+		//System.out.println("point#4a");
+		}
+		else if ((b1.compareTo(b2)) == 0){
+		//System.out.println("point#5");
+		if (!masterVal.equals(extractVal))
+		pwUpdate.write(extractLine.substring(2*hashLength+2)+"\r\n");
+		masterLine = masterBR.readLine();
+		if (extractBR.hasNext())
+		extractLine = extractBR.next();
+		else extractReadFlag = false;
+		//System.out.println("point#5a - " + extractLine + extractBR.hasNextLine());
+		}
+
+
+		} 
+		pwInsert.close();
+		pwUpdate.close();
+		pwCopy.close();
+		masterBR.close();
+		extractBR.close();
+
+		System.out.println("[INFO] Type1 File Creation Successful");
+
+		} catch (Exception e){
+			e.printStackTrace();
+		}	
+		}
+
+
+}
