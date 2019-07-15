@@ -1,0 +1,23 @@
+
+WC_SBL_ACTIVITY_PERF_FIX
+
+create 'student', 'address', 'batch'
+put '<table-name>','row-key','columnfamily:columnname','value
+put 'student','John','address:city','Albany'
+
+get ‘<table-name>’,’<row-key>’,’<column-family>’
+get 'student','John'
+
+get 'student','John','address:city'
+scan 'student'
+
+delete  '<table-name>','<rowkey>'
+delete 'student','ben','address:city'
+alter 'student',NAME=>'address',VERSIONS=>5
+
+scan 'student',{COLUMN=>'address:city',VERSIONS=>2}
+
+disable 'table-name'
+drop 'table-name'
+
+show_filters
