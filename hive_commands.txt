@@ -1,0 +1,134 @@
+﻿
+@Rbk$eCA%W57Pp
+
+select sm/cnt avge from (select sum(rating) sm, count(rating) cnt from movierating where rating>2 ) B
+
+select avg(rating) avge from movierating where rating>2
+
+set hive.exec.reducers.bytes.per.reducer=4;
+set hive.exec.reducers.max=4;
+set mapreduce.job.reduces=4
+
+
+LOAD DATA [LOCAL] INPATH 'filepath' [OVERWRITE] INTO TABLE tablename [PARTITION (partcol1=val1, partcol2=val2 ...)];
+
+hive> create table records (name string,age int,cgpa decimal(3,2))clustered by (age) into 2 buckets stored as orc tblproperties('transactional'='true');
+
+hive> insert into table records values('john Cena',45,8.02),('batista',48,8.96);
+
+insert into table movierating values (1,'How to Train Your Dragon: The Hidden World','February 22');
+insert into table movierating values (2,'Captain Marvel','March 08');
+insert into table movierating values (3,'The Best of Enemies','April 05');
+
+
+create table movierating(
+id int,
+movieid int,
+rating int,
+time string
+)
+row format delimited
+fields terminated by '\t';
+
+select sm/cnt avge from ( select sum(rating) sm, count(rating) cnt from movierating where rating>2 ) A
+
+
+create table truckmileage(
+year string,
+temp int,
+place string
+)
+row format delimited
+fields terminated by ','
+;
+
+select max(temp) mx,min(temp) mn from truckmileage;
+hive> merge into employee
+    > using (select * from empmerge) sub
+    > on sub.id=employee.id
+    > when matched then update set name=sub.name,place=sub.place
+    > when not matched then insert values(sub.id,sub.name,sub.state);
+
+
+
+    Updating values of bucketing columns are not allowed.
+    The file format should be in ORC format.
+    Tables should be bucketed.
+
+    set hive.txn.manager=org.apache.hadoop.hive.ql.lockmgr.DbTxnManager;
+    set hive.enforce.bucketing=true;
+    set hive.exec.dynamic.partition.mode=nonstrict
+
+
+Map join in hive:--
+
+select /*+ MAPJOIN(product) */ sales.*,product.*
+    > from sales JOIN product ON (sales.id=product.id);
+
+set hive.optimize.bucketmapjoin=true;
+
+set hive.exec dynamic.partition=true;
+set hive.exec dynamic.partition.mode=nonstrict;
+
+ create table city(no int,name string) partitioned by (city string) row format delimited fields terminated by ',';
+
+=>set hive.exec.dynamic.partition.mode=nonstrict;
+(as hive is by default set to strict mode)
+
+=>load data local inpath '/home/arani/Desktop/cities.csv' overwrite into table city partition(city="chennai");
+=>load data local inpath '/home/arani/Desktop/cities2.csv' overwrite into table city partition(city="mumbai");
+
+
+Bucketing:--
+
+hive>create table bucket_table(id int,firstname string,lastname string) clustered by (id) into 5 buckets row format delimited fields terminated by ',';
+
+
+Bucketing into dynamic partition::-->
+
+set hive.enforce.bucketing=true;
+hive> set hive.exec.dynamic.partition.node=nonstrict;
+
+hive> create table partition_table(id int,lastname string) partitioned by(firstname string) clustered by (id) into 5 buckets row format delimited fields terminated by ',';
+
+ hive> insert into partition_table partition (firstname) select id,lastname.firstname from table1;
+
+Bucket sampling:-->
+
+
+
+UDF:-->
+
+--------------------
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.hive.ql.exec.UDF;
+import org.apache.hadoop.io.Text;
+
+
+public class UDFExample extends UDF {
+    Text colvalue=new Text();
+    
+    public Text evaluate(Text str,String charRemove)
+    {
+        if(str==null)
+            return str;
+        colvalue.set(StringUtils.strip(str.toString(),charRemove));
+        return colvalue;
+    }
+    
+
+}
+
+---------------------
+
+
+hive> add jar /home/arani/Desktop/HIVE_DOCUMENTATION/UDFExample.jar;
+
+hive> create temporary function removeCharacter as 'UDFExample';
+
+hive> select removeCharacter(name,'$') from udf_example;
+select * from bucket_table tablesample(bucket 1 out of 5 on id);
+
+
+-------------------
+
