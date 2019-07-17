@@ -1,4 +1,4 @@
-﻿
+
 @Rbk$eCA%W57Pp
 
 select sm/cnt avge from (select sum(rating) sm, count(rating) cnt from movierating where rating>2 ) B
@@ -12,7 +12,9 @@ set mapreduce.job.reduces=4
 
 LOAD DATA [LOCAL] INPATH 'filepath' [OVERWRITE] INTO TABLE tablename [PARTITION (partcol1=val1, partcol2=val2 ...)];
 
-hive> create table records (name string,age int,cgpa decimal(3,2))clustered by (age) into 2 buckets stored as orc tblproperties('transactional'='true');
+hive> create table records (name string,age int,cgpa decimal(3,2))clustered by (age) into 2 buckets stored as orc 
+
+tblproperties('transactional'='true');
 
 hive> insert into table records values('john Cena',45,8.02),('batista',48,8.96);
 
@@ -21,17 +23,20 @@ insert into table movierating values (2,'Captain Marvel','March 08');
 insert into table movierating values (3,'The Best of Enemies','April 05');
 
 
-create table movierating(
+create table if not exists movierating(
 id int,
 movieid int,
 rating int,
 time string
 )
 row format delimited
-fields terminated by '\t';
+fields terminated by '\t'
+stored as TEXTFILE;
+
+
 
 select sm/cnt avge from ( select sum(rating) sm, count(rating) cnt from movierating where rating>2 ) A
-
+hive -e "select avg(rating) from movierating where rating>2" > output.txt
 
 create table truckmileage(
 year string,
@@ -43,6 +48,36 @@ fields terminated by ','
 ;
 
 select max(temp) mx,min(temp) mn from truckmileage;
+
+
+create table if not exists truckmileage(
+truckid string,
+driverid string,
+rdate string,
+miles bigint,
+gas bigint,
+mpg double
+)
+row format delimited
+fields terminated by '\t'
+stored as TEXTFILE;
+
+
+create table if not exists states_hand(
+street string,
+city string,
+zip int,
+state string,
+beds int,
+baths int,
+price int
+)
+row format delimited
+fields terminated by '\t'
+stored as TEXTFILE;
+
+
+
 hive> merge into employee
     > using (select * from empmerge) sub
     > on sub.id=employee.id
@@ -81,7 +116,9 @@ set hive.exec dynamic.partition.mode=nonstrict;
 
 Bucketing:--
 
-hive>create table bucket_table(id int,firstname string,lastname string) clustered by (id) into 5 buckets row format delimited fields terminated by ',';
+hive>create table bucket_table(id int,firstname string,lastname string) clustered by (id) into 5 buckets row format 
+
+delimited fields terminated by ',';
 
 
 Bucketing into dynamic partition::-->
@@ -89,7 +126,9 @@ Bucketing into dynamic partition::-->
 set hive.enforce.bucketing=true;
 hive> set hive.exec.dynamic.partition.node=nonstrict;
 
-hive> create table partition_table(id int,lastname string) partitioned by(firstname string) clustered by (id) into 5 buckets row format delimited fields terminated by ',';
+hive> create table partition_table(id int,lastname string) partitioned by(firstname string) clustered by (id) into 5 
+
+buckets row format delimited fields terminated by ',';
 
  hive> insert into partition_table partition (firstname) select id,lastname.firstname from table1;
 
@@ -132,3 +171,13 @@ select * from bucket_table tablesample(bucket 1 out of 5 on id);
 
 -------------------
 
+
+
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+
+set hive.exec.max.dynamic.partitions=20000;
+
+set hive.exec.max.dynamic.partitions.pernode=20000;
+
+set hive.enforce.bucketing=true;
